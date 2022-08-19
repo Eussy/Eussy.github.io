@@ -3,7 +3,7 @@ subtitle: Blog of Developer Eussy
 description: >- # this means to ignore newlines until "baseurl:"
   Blog of Developer Eussy
 
-url: "http://eussy.github.io" # the base hostname & protocol for your site, e.g. https://example.github.io
+url: "http://eussy.github.io/" # the base hostname & protocol for your site, e.g. https://example.github.io
 baseurl: "" # the subpath of your site, e.g. /blog
 future : true
 
