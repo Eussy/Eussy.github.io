@@ -4,6 +4,7 @@ layout: default
 
 <div class="row justify-content-center" id="blog-post-container">
   <div class="col-lg-10">
+    {% include toc.html html=content %}
     {%- include blog_post_article.html -%}
      {%- include blog_post_comments.html-%}
   </div>
