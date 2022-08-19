@@ -13,6 +13,8 @@ permalink: /blog/03_Design_Pattern/Factory-Method-Pattern/
 ---
 
 ## 팩토리 메소드 패턴
+
+### 팩토리 메소드 패턴(Factory Method Pattern)이란?
 객체를 생성하기 위해 부모 클래스에서 인터페이스를 정의하고, 
 그 아래 서브 클래스에서 어떠한 객체를 생성할지를 결정하게 만드는 패턴이다.
 
@@ -130,4 +132,4 @@ int main()
 }
 ```
 
-## template을 사용했을 때 장점과 단점
+### template을 사용했을 때 장점과 단점
