@@ -17,6 +17,7 @@ urls:
     - text: Contact
       url : /contact
 
+future : true
 
 # Edit Author details (For multi authors check _data/authors.yml)
 
