@@ -1,7 +1,7 @@
 title: Eussy's Developing
 subtitle: Blog of Developer Eussy
 description: >- # this means to ignore newlines until "baseurl:"
-  devlopr-jekyll is a beautiful Jekyll Theme Built For Developers, which is optimized for speed and readability.
+  Blog of Developer Eussy
 
 url: "http://eussy.github.io" # the base hostname & protocol for your site, e.g. https://example.github.io
 baseurl: "" # the subpath of your site, e.g. /blog
@@ -26,7 +26,7 @@ author: Eussy
 author_bio: 안녕하세요. 게임 개발을 배우고 있는 비전공자 개발자 Eussy입니다.
 author_email: "hang3137@naver.com"
 author_location: Korea
-author_website_url: "https://sujaykundu.com"
+author_website_url: ""
 typewrite-text: 안녕하세요. 초보 게임 개발자 Eussy의 개발 블로그입니다.
 hero_cover_img: sample_cover.jpg # replace this for changing homepage cover (eg. try cover.jpeg). Image should be in /assets/img
 
