@@ -8,6 +8,7 @@ category: 03_Design_Pattern
 thumbnail: /assets/img/posts/code.jpg
 keywords: devlopr jekyll, how to use devlopr, devlopr, how to use devlopr-jekyll, devlopr-jekyll tutorial,best jekyll themes
 usemathjax: true
+published : true
 permalink: /blog/03_Design_Pattern/Factory-Method-Pattern/
 ---
 
