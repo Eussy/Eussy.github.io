@@ -23,7 +23,6 @@ permalink: /blog/01_C_C++/Container_01_vector
 ---
 ```c++
 #include <vector>
-using namespace std;
 ```
 ---
 
