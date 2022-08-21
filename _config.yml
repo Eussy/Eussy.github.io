@@ -47,9 +47,9 @@ hero_cover_img: sample_cover.jpg # replace this for changing homepage cover (eg.
 
 # Education
 author_education_details:
-              - college_logo: mit.png
+              - college_logo: 
                 college_name: 인천대학교
-                college_url: https://mit.org
+                college_url: https://www.inu.ac.kr
                 college_degree: 체육교육과
                 description: 
                 visibility: true
