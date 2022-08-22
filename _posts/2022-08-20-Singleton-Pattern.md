@@ -3,7 +3,7 @@ layout: post
 title:  "디자인 패턴 06 : 싱글톤 패턴(Singleton Pattern)"
 summary: "싱글톤 패턴"
 author: Eussy
-date: '2022-08-20 17:50:00 +0530'
+date: '2022-08-20 18:30:00 +0530'
 category: '03_Design Pattern'
 tags: Eussy
 thumbnail: /assets/img/posts/code.jpg
@@ -15,74 +15,60 @@ permalink: /blog/03_Design_Pattern/Singleton-Pattern/
 ## 싱글톤 패턴
 
 ### 싱글톤 패턴(Singleton Pattern)이란?
-객체 생성 디자인 패턴 중에 하나로, 여러 개의 객체들로 구성된 복합 객체와 단일 객체를 클라이언트에서 구별 없이 다루게 해주는 패턴이다.
-전체-부분의 관계를 갖는 객체들(Ex.Directory-File) 사이의 관계를 정의할 때 유용하다.
-부분과 전체의 계층을 표현하기 위해 객체들을 모아 트리 구조로 구성하며 사용자로 하여금 복합 객체와 단일 객체를 동일하게 사용할 수 있도록 한다.
+객체 생성 디자인 패턴 중에 하나로, '하나'의 인스턴스만 생성하여 사용하는 디자인 패턴이다.
+즉, 인스턴스가 필요할 때, 똑같은 인스턴스를 만드는 것이 아닌 만들어져 있는 인스턴스를 계속해서 활용한다.
+인스턴스가 하나만 존재해야할 때, 이 싱글톤 패턴을 많이 사용한다.
 
-폴더와 파일의 관계를 예제로 만들어 컴포지트 패턴을 살펴보도록 하자.
+대한민국의 주민등록번호를 예시로 만들어 싱글톤 패턴을 살펴보도록 하자.
 
 ## 예제
 
-### Composite 추상 클래스
+### RegisterNumber 클래스
 
 ```c++
 #include <iostream>
-#include <vector>
 
-using namespace std;
-
-class Composite {
+class RegisterNumber {
+private:
+    static RegisterNumber* instance;
+    int number;
+    RegisterNumber() {}
 public:
-	string name;
-	int size;
-public:
-	Composite(string name, int size) : name(name), size(size) {}
-	virtual ~Composite(){}
-	virtual string getName() { return ""; };
-	virtual int getSize() { return 0; };
+    static RegisterNumber GetInstance(){
+        if (instance == nullptr)
+        {
+            instance = new RegisterNumber;
+            instance->number = rand();
+        }
+        return *instance;
+    }
 };
 ```
 
-위 Composite 추상 클래스를 상속받을 클래스들은 폴더와 파일이다. 이는 각자 이름(name)과 크기(size) 변수를 가지고 있다.
-아래 Folder와 File 클래스는 getSize()와 getName() 함수를 구현함으로써 이름과 사이즈를 반환할 수 있다.
-
-그리고 폴더는 리스트를 가지고 있기 때문에 파일을 포함 할 수 있어 File은 Leaf로 동작하고 Folder는 이러한 Leaf들을 m_list 안에 포함해 Composite 패턴을 구현하였다.
+위 RegisterNumber 클래스는 싱글톤 패턴으로 구현한 클래스이다. 생성자의 접근권한이 private이기 때문에 외부에서 생성자를 사용할 수 없고
+GetInstance()만 사용해서 접근할 수 있다. 이 때 GetInstance() 함수 안에서는 이미 instance가 존재하면 그대로 반환하기 때문에 단 하나의 RegisterNumber 객체만이 존재한다는 것을 알 수 있다.
 
 ```c++
-class Folder : public Composite {
+template<class T>
+class Singleton
+{
 public:
-	vector<Composite*> m_list; 
-public:
-	Folder(string name, int size) : Composite(name, size){}
-	~Folder() {
-		for (Composite* com : m_list)
-		{
-			delete com;
-		}
-	}
-	virtual string getName() override {
-		return name;
-	}
-	virtual int getSize() override {
-		for (Composite* com : m_list)
-		{
-			size += com->getSize();
-		}
-		return size;
-	}
+    static T& GetInstance()
+    {
+        static T instance;
+        return instance;
+    }
 };
 
-class File : public Composite {
-public:
-	File(string name, int size) : Composite(name, size) {}
-	virtual string getName() override {
-		return name;
-	}
-	virtual int getSize() override {
-		return size;
-	}
+class RegisterNumber2 : public Singleton<RegisterNumber2> {
+    friend class Singleton<RegisterNumber2>;
+private:
+    int number;
+    RegisterNumber2(){ number = rand(); }
 };
 ```
+위의 코드는 template을 이용해 싱글톤을 구현하였다. 이와 같이 사용한다면 가독성이 높아지고 여러 싱글톤을 만들때 편하게 사용할 수 있다는 장점이 있다.
+
 
 
 ### 사용 예제
@@ -90,28 +76,14 @@ public:
 ```c++
 int main()
 {
-	// 맨 상위 폴더 배경화면 생성 후 카카오톡 넣기
-	Folder* background = new Folder("배경화면", 0);
-	background->m_list.push_back(new File("카카오톡", 5));
-
-	// 폴더 하나 생성 후 크롬, 엣지 파일 넣기
-	Folder* folder1 = new Folder("폴더1", 0);
-	folder1->m_list.push_back(new File("크롬", 2));
-	folder1->m_list.push_back(new File("엣지", 4));
-
-	//폴더1을 배경화면 폴더에 넣기
-	background->m_list.push_back(folder1);
-
-	cout << background->getSize();
-
-	delete background;
+	// RegisterNumber는 단 하나의 객체만 생성이 가능
+	RegisterNumber myNum = RegisterNumber::GetInstance();
+    RegisterNumber2 myNum2 = RegisterNumber2::GetInstance();
 }
 ```
 
-현재 파일의 구성을 보면, "바탕화면"이라는 폴더 안에는 사이즈 5의 "카카오톡"이라는 파일과 "폴더1"이라는 폴더가 존재한다.
-이 폴더 안에는 사이즈 2의 "크롬", 사이즈 4의 "엣지"라는 파일이 존재하므로 이 폴더의 크기는 2 + 4 = 6이다.
-따라서 폴더1과 카카오톡의 크기를 합친 크기가 배경화면의 크기가 된다. 이렇게 컴포지트 패턴은 폴더라는 복합 객체 또한 단일 객체와 같이 동작할 수 있도록
-list, vector를 통해 관리하도록 하는 패턴이다.
+RegisterNumber 클래스 안에 있는 GetInstance() 함수를 통해서만 객체를 사용할 수 있으며 이 객체는 단 하나만 존재하게 구현하였다.
+이 같이 클래스의 객체를 단 하나만 생성하고 사용하는 패턴을 싱글톤 패턴이라고 한다.
 
 
 ### 전체 코드
@@ -120,73 +92,44 @@ list, vector를 통해 관리하도록 하는 패턴이다.
 
 ```c++
 #include <iostream>
-#include <vector>
 
-using namespace std;
-
-class Composite {
+class RegisterNumber {
+private:
+    static RegisterNumber* instance;
+    int number;
+    RegisterNumber() {}
 public:
-	string name;
-	int size;
-public:
-	Composite(string name, int size) : name(name), size(size) {}
-	virtual ~Composite(){}
-	virtual string getName() { return ""; };
-	virtual int getSize() { return 0; };
+    static RegisterNumber GetInstance(){
+        if (instance == nullptr)
+        {
+            instance = new RegisterNumber;
+            instance->number = rand();
+        }
+        return *instance;
+    }
 };
 
-class Folder : public Composite {
+template<class T>
+class Singleton
+{
 public:
-	vector<Composite*> m_list; 
-public:
-	Folder(string name, int size) : Composite(name, size){}
-	~Folder() {
-		for (Composite* com : m_list)
-		{
-			delete com;
-		}
-	}
-	virtual string getName() override {
-		return name;
-	}
-	virtual int getSize() override {
-		for (Composite* com : m_list)
-		{
-			size += com->getSize();
-		}
-		return size;
-	}
+    static T& GetInstance()
+    {
+        static T instance;
+        return instance;
+    }
 };
 
-class File : public Composite {
-public:
-	File(string name, int size) : Composite(name, size) {}
-	virtual string getName() override {
-		return name;
-	}
-	virtual int getSize() override {
-		return size;
-	}
+class RegisterNumber2 : public Singleton<RegisterNumber2> {
+    friend class Singleton<RegisterNumber2>;
+private:
+    int number;
+    RegisterNumber2(){ number = rand(); }
 };
 
 int main()
 {
-	// 맨 상위 폴더 배경화면 생성 후 카카오톡 넣기
-	Folder* background = new Folder("배경화면", 0);
-	background->m_list.push_back(new File("카카오톡", 5));
-
-	// 폴더 하나 생성 후 크롬, 엣지 파일 넣기
-	Folder* folder1 = new Folder("폴더1", 0);
-	folder1->m_list.push_back(new File("크롬", 2));
-	folder1->m_list.push_back(new File("엣지", 4));
-
-	//폴더1을 배경화면 폴더에 넣기
-	background->m_list.push_back(folder1);
-
-	cout << background->getSize();
-
-	delete background;
+    RegisterNumber myNum = RegisterNumber::GetInstance();
+    RegisterNumber2 myNum2 = RegisterNumber2::GetInstance();
 }
-
-
 ```
