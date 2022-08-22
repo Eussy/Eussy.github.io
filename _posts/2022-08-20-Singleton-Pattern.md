@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "디자인 패턴 05 : 컴포지트 패턴(Composite Pattern)"
-summary: "컴포지트 패턴"
+title:  "디자인 패턴 06 : 싱글톤 패턴(Singleton Pattern)"
+summary: "싱글톤 패턴"
 author: Eussy
 date: '2022-08-20 17:50:00 +0530'
 category: '03_Design Pattern'
@@ -9,12 +9,12 @@ tags: Eussy
 thumbnail: /assets/img/posts/code.jpg
 keywords: 
 usemathjax: true
-permalink: /blog/03_Design_Pattern/Composite-Pattern/
+permalink: /blog/03_Design_Pattern/Singleton-Pattern/
 ---
 
-## 컴포지트 패턴
+## 싱글톤 패턴
 
-### 컴포지트 패턴(Composite Pattern)이란?
+### 싱글톤 패턴(Singleton Pattern)이란?
 객체 생성 디자인 패턴 중에 하나로, 여러 개의 객체들로 구성된 복합 객체와 단일 객체를 클라이언트에서 구별 없이 다루게 해주는 패턴이다.
 전체-부분의 관계를 갖는 객체들(Ex.Directory-File) 사이의 관계를 정의할 때 유용하다.
 부분과 전체의 계층을 표현하기 위해 객체들을 모아 트리 구조로 구성하며 사용자로 하여금 복합 객체와 단일 객체를 동일하게 사용할 수 있도록 한다.

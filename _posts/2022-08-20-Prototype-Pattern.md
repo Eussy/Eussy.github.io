@@ -3,7 +3,7 @@ layout: post
 title:  "디자인 패턴 04 : 프로토 타입 패턴(Prototype Pattern)"
 summary: "프로토 타입 패턴"
 author: Eussy
-date: '2022-08-19 16:00:00 +0530'
+date: '2022-08-20 16:00:00 +0530'
 category: '03_Design Pattern'
 tags: Eussy
 thumbnail: /assets/img/posts/code.jpg
