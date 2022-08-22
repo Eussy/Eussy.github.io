@@ -3,7 +3,7 @@ layout: post
 title:  "디자인 패턴 05 : 컴포지트 패턴(Composite Pattern)"
 summary: "컴포지트 패턴"
 author: Eussy
-date: '2022-08-19 16:00:00 +0530'
+date: '2022-08-19 17:50:00 +0530'
 category: '03_Design Pattern'
 tags: Eussy
 thumbnail: /assets/img/posts/code.jpg
@@ -15,108 +15,104 @@ permalink: /blog/03_Design_Pattern/Composite-Pattern/
 ## 컴포지트 패턴
 
 ### 컴포지트 패턴(Composite Pattern)이란?
-객체 생성 디자인 패턴 중에 하나로, 기존 객체를 복사해서 객체를 생성하는 패턴으로,
-객체를 생성하는데 시간과 비용이 많이 들고 이미 객체가 생성되어 있을 경우에 사용된다.
-클래스 안에 clone()과 같은 함수로 구현한다. 이때 clone() 함수를 만들 때 깊은 복사와 얕은 복사에 유의한다.
-(**디폴트 복사 생성자**는 메모리를 그대로 복사해서 붙여 넣기 때문에 가장 비용이 저렴하다.
-따라서 디폴트 복사 생성자를 사용할 수 있을 때는 사용하는 것이 가장 효율적이다.)
+객체 생성 디자인 패턴 중에 하나로, 여러 개의 객체들로 구성된 복합 객체와 단일 객체를 클라이언트에서 구별 없이 다루게 해주는 패턴이다.
+전체-부분의 관계를 갖는 객체들(Ex.Directory-File) 사이의 관계를 정의할 때 유용하다.
+부분과 전체의 계층을 표현하기 위해 객체들을 모아 트리 구조로 구성하며 사용자로 하여금 복합 객체와 단일 객체를 동일하게 사용할 수 있도록 한다.
 
-
-예제로 프로토타입을 한번 알아보도록 하자
+폴더와 파일의 관계를 예제로 만들어 컴포지트 패턴을 살펴보도록 하자.
 
 ## 예제
 
-### Prototype 인터페이스와 이를 통해 만들어낼 Book이라는 클래스 정의하기
+### Composite 추상 클래스
 
 ```c++
 #include <iostream>
-#include <string>
 #include <vector>
 
 using namespace std;
 
-template <class T>
-class Prototype {
+class Composite {
 public:
-    virtual T clone() = 0;
-};
-
-class Book : Prototype<Book>{
+	string name;
+	int size;
 public:
-    string title;
-    string author;
-    vector<string> content;
-public:
-    Book clone() override {
-        // 기본 복사 생성자를 통한 복사
-        Book book = *this;
-        return book;
-    }
+	Composite(string name, int size) : name(name), size(size) {}
+	virtual ~Composite(){}
+	virtual string getName() { return ""; };
+	virtual int getSize() { return 0; };
 };
 ```
 
-우리는 책을 복제하는 것을 예시로 들어 프로토타입 패턴을 살펴보도록 하겠다. 우선 위 코드는 Prototype이라는 인터페이스를 만들고 그 인터페이스를 가지고 만들어낸 Book이라는 클래스이다.
-이 같이 인터페이스를 만들게 되면 반드시 clone() 함수를 구현해야한다는 강제성이 생긴다.
+위 Composite 추상 클래스를 상속받을 클래스들은 폴더와 파일이다. 이는 각자 이름(name)과 크기(size) 변수를 가지고 있다.
+아래 Folder와 File 클래스는 getSize()와 getName() 함수를 구현함으로써 이름과 사이즈를 반환할 수 있다.
+
+그리고 폴더는 리스트를 가지고 있기 때문에 파일을 포함 할 수 있어 File은 Leaf로 동작하고 Folder는 이러한 Leaf들을 m_list 안에 포함해 Composite 패턴을 구현하였다.
 
 ```c++
-class Book {
+class Folder : public Composite {
 public:
-    string title;
-    string author;
-    vector<string> content;
+	vector<Composite*> m_list; 
 public:
-    Book clone(){
-        // 기본 복사 생성자를 통한 복사
-        Book book = *this;
-        return book;
-    }
+	Folder(string name, int size) : Composite(name, size){}
+	~Folder() {
+		for (Composite* com : m_list)
+		{
+			delete com;
+		}
+	}
+	virtual string getName() override {
+		return name;
+	}
+	virtual int getSize() override {
+		for (Composite* com : m_list)
+		{
+			size += com->getSize();
+		}
+		return size;
+	}
+};
+
+class File : public Composite {
+public:
+	File(string name, int size) : Composite(name, size) {}
+	virtual string getName() override {
+		return name;
+	}
+	virtual int getSize() override {
+		return size;
+	}
 };
 ```
 
-물론 다음과 같이 클래스 안에 단순히 clone() 함수를 만들어 구현할 수도 있다. 상황에 맞춰 사용하면 될 듯 하다.
-
-### 주의 점 : 깊은 복사와 얕은 복사
-
-이 때 clone() 함수를 구현할 때 깊은 복사와 얕은 복사를 주의하여 만들어야한다.
-
-```c++
-// 깊은 복사, 얕은 복사 주의
-class Person : Prototype<Person>{
-public:
-    char* name;
-    int age;
-public:
-    Person clone() override {
-        Person p = *this;
-        p.name = new char[];
-        return p;
-    }
-};
-```
-
-위 Person 클래스에서는 name을 char형 포인터로 받고 있기 때문에 그냥 디폴트 복사생성자를 사용하게 되면 기존 객체의 name을 참조하기 때문에 
-기존 객체와 복사한 객체가 같은 자료를 가리키게 되기 때문에 문제가 발생할 수 있다. 따라서 깊은 복사를 구현해 문제를 해결하도록 한다.
 
 ### 사용 예제
 
 ```c++
-int main(){
-Book oriBook;
-    oriBook.title = "Good Book";
-    oriBook.author = "Eussy";
-    oriBook.content.push_back("1장 : 시작");
-    oriBook.content.push_back("2장 : 중간");
-    oriBook.content.push_back("3장 : 끝");
+int main()
+{
+	// 맨 상위 폴더 배경화면 생성 후 카카오톡 넣기
+	Folder* background = new Folder("배경화면", 0);
+	background->m_list.push_back(new File("카카오톡", 5));
 
-    Book copyBook = oriBook.clone();
+	// 폴더 하나 생성 후 크롬, 엣지 파일 넣기
+	Folder* folder1 = new Folder("폴더1", 0);
+	folder1->m_list.push_back(new File("크롬", 2));
+	folder1->m_list.push_back(new File("엣지", 4));
+
+	//폴더1을 배경화면 폴더에 넣기
+	background->m_list.push_back(folder1);
+
+	cout << background->getSize();
+
+	delete background;
 }
 ```
 
-실제로 책을 하나 구성할 때는 제목부터 내용까지 엄청나게 많은 노력을 필요로 한다. 이렇게 책 하나를 구성하는데 많은 시간이 들기 때문에 
-수백, 수천개의 책을 만들어야할때 엄청난 노력이 필요로 하게 된다. 
-하지만 이 때 책을 찍어내는 활자가 있다면 어떨까? 활자가 존재한다면 책을 일일이 구성하지 않아도 되기 때문에 많은 비용과 시간을 아낄 수 있다.
+현재 파일의 구성을 보면, "바탕화면"이라는 폴더 안에는 사이즈 5의 "카카오톡"이라는 파일과 "폴더1"이라는 폴더가 존재한다.
+이 폴더 안에는 사이즈 2의 "크롬", 사이즈 4의 "엣지"라는 파일이 존재하므로 이 폴더의 크기는 2 + 4 = 6이다.
+따라서 폴더1과 카카오톡의 크기를 합친 크기가 배경화면의 크기가 된다. 이렇게 컴포지트 패턴은 폴더라는 복합 객체 또한 단일 객체와 같이 동작할 수 있도록
+list, vector를 통해 관리하도록 하는 패턴이다.
 
-이처럼 코드에서도 **clone()이라는 복사수단을 이용해 객체 생성 비용과 시간을 아낄 수 있도록 하는 것**이 바로 프로토타입(Prototype) 패턴의 가장 큰 특징이자 장점이라 할 수 있다.
 
 ### 전체 코드
 
@@ -124,55 +120,73 @@ Book oriBook;
 
 ```c++
 #include <iostream>
-#include <string>
 #include <vector>
 
 using namespace std;
 
-template <class T>
-class Prototype {
+class Composite {
 public:
-    virtual T clone() = 0;
+	string name;
+	int size;
+public:
+	Composite(string name, int size) : name(name), size(size) {}
+	virtual ~Composite(){}
+	virtual string getName() { return ""; };
+	virtual int getSize() { return 0; };
 };
 
-// 템플릿 사용 O
-class Book : Prototype<Book>{
+class Folder : public Composite {
 public:
-    string title;
-    string author;
-    vector<string> content;
+	vector<Composite*> m_list; 
 public:
-    Book clone() override {
-        // 기본 복사 생성자를 통한 복사
-        Book book = *this;
-        return book;
-    }
+	Folder(string name, int size) : Composite(name, size){}
+	~Folder() {
+		for (Composite* com : m_list)
+		{
+			delete com;
+		}
+	}
+	virtual string getName() override {
+		return name;
+	}
+	virtual int getSize() override {
+		for (Composite* com : m_list)
+		{
+			size += com->getSize();
+		}
+		return size;
+	}
 };
 
-// 템플릿 사용 X
-class Book2 {
+class File : public Composite {
 public:
-    string title;
-    string author;
-    vector<string> content;
-public:
-    Book2 clone(){
-        // 기본 복사 생성자를 통한 복사
-        Book2 book = *this;
-        return book;
-    }
+	File(string name, int size) : Composite(name, size) {}
+	virtual string getName() override {
+		return name;
+	}
+	virtual int getSize() override {
+		return size;
+	}
 };
 
 int main()
 {
-    Book oriBook;
-    oriBook.title = "Good Book";
-    oriBook.author = "Eussy";
-    oriBook.content.push_back("1장 : 시작");
-    oriBook.content.push_back("2장 : 중간");
-    oriBook.content.push_back("3장 : 끝");
+	// 맨 상위 폴더 배경화면 생성 후 카카오톡 넣기
+	Folder* background = new Folder("배경화면", 0);
+	background->m_list.push_back(new File("카카오톡", 5));
 
-    Book copyBook = oriBook.clone();
+	// 폴더 하나 생성 후 크롬, 엣지 파일 넣기
+	Folder* folder1 = new Folder("폴더1", 0);
+	folder1->m_list.push_back(new File("크롬", 2));
+	folder1->m_list.push_back(new File("엣지", 4));
+
+	//폴더1을 배경화면 폴더에 넣기
+	background->m_list.push_back(folder1);
+
+	cout << background->getSize();
+
+	delete background;
 }
+
 
 ```
