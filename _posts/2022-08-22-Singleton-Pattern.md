@@ -3,7 +3,7 @@ layout: post
 title:  "디자인 패턴 06 : 싱글톤 패턴(Singleton Pattern)"
 summary: "싱글톤 패턴"
 author: Eussy
-date: '2022-08-20 18:30:00 +0530'
+date: '2022-08-22 18:30:00 +0530'
 category: '03_Design Pattern'
 tags: Eussy
 thumbnail: /assets/img/posts/code.jpg
