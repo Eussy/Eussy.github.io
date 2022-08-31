@@ -1,22 +1,20 @@
 ---
 layout: post
-title:  "WinAPI/DX11 02 : Device 만들어 랜더링 하기"
-summary: "Device를 만들고 배경색을 랜더링을 통해 바꿔보자"
+title:  "WinAPI/DX11 03 : VertexBuffer를 가지고 삼각형 만들기"
+summary: "VertexBuffer를 만들어 삼각형을 띄워보자"
 author: Eussy
-date: '2022-08-26 18:30:00 +0530'
+date: '2022-08-29 18:30:00 +0530'
 category: '04_WinAPI/DX11'
 tags: Eussy
 thumbnail: /assets/img/posts/code.jpg
 keywords: 
 usemathjax: true
-permalink: /blog/04_WinAPI_DX/02_MakeDevice/
+permalink: /blog/04_WinAPI_DX/03_MakeTriangle/
 ---
 
-## 2장. Device를 만들고 랜더링을 통해 배경색을 바꿔보자
+## 3장. VertexBuffer를 만들어 삼각형 만들기
 
 이번 장에서는 DirectX11을 통해 랜더링 파이프라인을 구축하기 위한 기초 세팅을 해보도록 하자.
-
-<hr />
 
 ### 1. HDevice 클래스 생성
 
@@ -78,7 +76,6 @@ BOOL CreateRenderTargetView();
 // 5. 뷰포트를 생성하는 함수
 void CreateViewPort();
 ```
-<hr />
 
 ### 2. HDevice 함수 살펴보기
 
@@ -209,8 +206,6 @@ void HDevice::CreateViewPort()
 
 CreateViewPort()에서는 말 그대로 뷰포트를 생성해 RS 단계에서 뷰포트를 설정해둔다.
 
-<hr />
-
 ### 3. Render()에서 랜더링 하기
 
 기본 세팅들은 끝났다. 이제 백버퍼를 이용해 랜더링을 한 번 진행해보도록 하자.
@@ -236,9 +231,6 @@ BOOL HDevice::Render()
 ```
 <p>Render() 함수에서 백 버퍼의 색깔을 바꾼 뒤 계속해서 프론트 버퍼와 바꿔주면서 랜더링을 해보았다.</p>
 
-<hr />
-
 ### 4. 작업 결과 확인하기
-<p>
+
  <img src="gif1.gif">
- </p>
