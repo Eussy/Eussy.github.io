@@ -20,6 +20,7 @@ permalink: /blog/04_WinAPI_DX/02_MakeDevice/
 
 ### 1. HDevice 클래스 생성
 
+#### ㄱ) HDevice 클래스 전체 보기
 ```c++
 class HDevice : public HWindow
 {
@@ -80,11 +81,11 @@ void CreateViewPort();
 ```
 <hr />
 
-### 2. HDevice 함수 살펴보기
+#### ㄴ) HDevice 함수 살펴보기
 
 이제 여러 Create 함수들이 있지만 이 함수들안의 내용은 생소하기 때문에 자세히 살펴볼 필요가 있다. 하나씩 알아보도록 하자
 
-#### 1) CreateDevice()
+##### 1) CreateDevice()
 ```c++
 BOOL HDevice::CreateDevice()
 {
@@ -109,7 +110,7 @@ BOOL HDevice::CreateDevice()
 
 CreateDevice() 에서는  Device와 Context를 생성했다. 인자들의 내용은 차분히 배워가도록 하자.
 
-#### 2) CreateFactory()
+##### 2) CreateFactory()
 ```c++
 BOOL HDevice::CreateFactory()
 {
@@ -123,7 +124,7 @@ BOOL HDevice::CreateFactory()
 
 CreateFactory() 에서는 DXGI 팩토리를 생성한다. __uuid를 왜 사용하는지는 아직 모르겠다.
 
-#### 3) CreateSwapChain()
+##### 3) CreateSwapChain()
 ```c++
 BOOL HDevice::CreateSwapChain()
 {
@@ -162,7 +163,7 @@ BOOL HDevice::CreateSwapChain()
 
 CreateSwapChain() 에서는 버퍼 데스크를 만들고 이를 통해 SwapChain을 만든다.
 
-#### 4) CreateRenderTargetView()
+##### 4) CreateRenderTargetView()
 ```c++
 BOOL HDevice::CreateRenderTargetView()
 {
@@ -185,7 +186,7 @@ BOOL HDevice::CreateRenderTargetView()
 
 CreateRenderTargetView() 에서는 스왑체인에서 백 버퍼를 받아온 다음 그 버퍼를 다음 타겟뷰로 정해놓는다.
 
-#### 5) CreateViewPort()
+##### 5) CreateViewPort()
 ```c++
 void HDevice::CreateViewPort()
 {
@@ -211,7 +212,7 @@ CreateViewPort()에서는 말 그대로 뷰포트를 생성해 RS 단계에서 �
 
 <hr />
 
-### 3. Render()에서 랜더링 하기
+### 2. Render()에서 랜더링 하기
 
 기본 세팅들은 끝났다. 이제 백버퍼를 이용해 랜더링을 한 번 진행해보도록 하자.
 
@@ -238,7 +239,7 @@ BOOL HDevice::Render()
 
 <hr />
 
-### 4. 작업 결과 확인하기
+### 3. 작업 결과 확인하기
 <p>
  <img src="gif1.gif" class="img-fluid">
  </p>
