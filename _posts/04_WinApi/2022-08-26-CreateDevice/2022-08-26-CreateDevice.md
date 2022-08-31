@@ -240,5 +240,5 @@ BOOL HDevice::Render()
 
 ### 4. 작업 결과 확인하기
 <p>
- <img src="gif1.gif">
+ <img src="gif1.gif" class="img-fluid">
  </p>
