@@ -1,15 +1,15 @@
 ---
 layout: post
-title:  "WinAPI 01 : 윈도우 생성"
+title:  "WinAPI/DX11 01 : 윈도우 생성"
 summary: "윈도우 생성"
 author: Eussy
 date: '2022-08-23 18:30:00 +0530'
-category: '04_WinAPI'
+category: '04_WinAPI/DX11'
 tags: Eussy
 thumbnail: /assets/img/posts/code.jpg
 keywords: 
 usemathjax: true
-permalink: /blog/04_WinAPI/01_MakeWindow/
+permalink: /blog/04_WinAPI_DX/01_MakeWindow/
 ---
 
 ## 1장. 윈도우 생성하기
