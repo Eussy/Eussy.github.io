@@ -35,11 +35,30 @@ Texture를 생성하기 위한 과정은 다음과 같다.
 
 <hr />
 
-### 1. VertexBuffer 생성하기
+### 1. 헤더 파일과 라이브러리 적용하기
 
-#### ㄱ) Sample 클래스 전체 보기
+<p> 이번에 Texture를 적용하기 위해서는 새로운 헤더 파일과 라이브러리를 사용할 것이다.</p>
 
-<p>Sample 클래스는 이번 장에서 하나의 삼각형을 생성하는 객체로 동작할 것이다. </p>
+<p> 구글에 DirectX ToolKit을 검색하면 깃이 하나 나온다. 다음 주소에서 파일을 받은 뒤 버전에 맞게 빌드해서 .lib 파일과 .h 파일들을 포함하도록 하자.</p>
+
+<p> https://github.com/microsoft/DirectXTK</p>
+
+<p>프로젝트 속성 -> 구성 속성 -> C/C++ -> 추가 포함 디렉터리</p>
+<p>프로젝트 속성 -> 구성 속성 -> 링커 -> 추가 라이브러리 디렉터리</p>
+
+```c++
+#include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
+#pragma comment(lib, "DirectXTK.lib")
+```
+
+<p> 필요한 헤더 두 개의 헤더를 적용시키고 라이브러리도 불러오도록 한다.</p>
+
+
+### 2. Texture를 만들기 위한 인터페이스 생성 후 요소 추가
+
+#### ㄱ) SimpleVertex에 Texture 좌표 추가해주기
+<p>우리는 버텍스를 만들 때 SimpleVertex를 이용해 Position과 Color를 주었다. 이 Texture 또한 x, y 두 가지 값이 필요하기 때문에 SimpleVertex에 두 가지 요소를 추가하도록 하겠다.</p>
 
 ```c++
 struct SimpleVertex
@@ -52,212 +71,111 @@ public:
 	float g;
 	float b;
 	float a;
-};
-
-class Sample : public HDevice
-{
-public:
-	// VertexBuffer
-	ID3D11Buffer* m_pVertexBuffer;
-	// InputVertexLayout
-	ID3D11InputLayout* m_pVertexLayout;
-	// VS CODE : 버텍스 쉐이더 코드
-	ID3DBlob* m_pVSCODE;
-	// Vertex Shader
-	ID3D11VertexShader* m_pVS;
-
-
-	// PS CODE : 픽셀 쉐이더 코드
-	ID3DBlob* m_pPSCODE;
-	// Pixel Shader
-	ID3D11PixelShader* m_pPS;
-
-public:
-	virtual BOOL Init();
-	virtual BOOL Frame();
-	virtual BOOL Render();
-	virtual BOOL Release();
-
-	BOOL CreateVertexBuffer();
-	BOOL CreateVertexShaderCode();
-	BOOL CreateVertexShader();
-	BOOL CreatePixelShaderCode();
-	BOOL CreatePixelShader();
-	BOOL CreateInputLayout();
+	float tx;
+	float ty;
 };
 ```
 
-#### ㄴ) Sample 클래스 멤버들 살펴보기
-
+<p> 또한, 텍스쳐 위치는 0~1까지의 값까지 밖에 갖지 못하기 때문에 삼각형의 점에 알맞게 배치한다.</p>
 ```c++
-struct SimpleVertex
-{
-public:
-	float x;
-	float y;
-	float z;
-	float r;
-	float g;
-	float b;
-	float a;
-};
+{-0.5f, 0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f}, // v1
+{+0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f}, // v2
+{-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f}, // v3
+{-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f}, // v4
+{+0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f}, // v5
+{+0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f}  // v6
 ```
 
-<p>우선, SimpleVertex 같은 경우 위치를 담당할 x,y,z 값과 색을 담당할 r,g,b,a로 구성되어 있다. VertexBuffer의 점 하나를 SimpleVertex로 구성해 위치 뿐 아니라 색까지 입혀보자.</p>
-
+#### ㄴ) Sample 클래스에 텍스쳐 관련 변수들 만들어주기
+<p>이제 앞에서 삼각형을 만들었던 Sample 클래스에 멤버 포인터 변수들을 추가한다.</p>
 
 ```c++
-// m_pVertexBuffer : 생성된 VertexBuffer를 담을 포인터 변수
-ID3D11Buffer* m_pVertexBuffer;
-// m_pVertexLayout : 생성된 인풋 레이아웃을 담을 포인터 변수 
-ID3D11InputLayout* m_pVertexLayout;
-// VS CODE : 버텍스 쉐이더 코드로, txt 파일로 만들어진 코드를 컴파일해 코드로 담고 있을 포인터 변수이다.
-ID3DBlob* m_pVSCODE;
-// Vertex Shader : 생성된 Vertex Shader를 담고 있을 포인터 변수이다.
-ID3D11VertexShader* m_pVS;
-
-
-// PS CODE : 픽셀 쉐이더 코드로, txt 파일로 만들어진 코드를 컴파일해 코드로 담고 있을 포인터 변수이다.
-ID3DBlob* m_pPSCODE;
-// Pixel Shader : 생성된 Pixel Shader를 담고 있을 포인터 변수이다.
-ID3D11PixelShader* m_pPS;
+// Texture 리소스에 대한 포인터
+ID3D11Resource* m_pTexture;
+// 리소스 뷰
+ID3D11ShaderResourceView* m_pShaderRV;
 ```
 
-#### ㄷ) Sample 클래스 멤버들 살펴보기
+#### ㄷ) Sample 클래스 Init() 함수에 텍스쳐 생성 단계 만들어주기
+
+<p> 이제 Sample 객체를 만들 때 Init()에서 새로운 단계를 추가해 이 포인터 변수들에 객체를 부여할 것이다.</p>
 
 ```c++
-BOOL Sample::Init()
+bool Sample::Init()
 {
-    
-    if (FAILED(m_hr = CreateVertexBuffer())) return FALSE;
 
-    if (FAILED(m_hr = CreateVertexShaderCode())) return FALSE;
+    if (FAILED(CreateVertexBuffer())) return false;
 
-    if (FAILED(m_hr = CreateVertexShader())) return FALSE;
+    if (FAILED(CreateVertexShaderCode())) return false;
 
-    if (FAILED(m_hr = CreatePixelShaderCode())) return FALSE;
+    if (FAILED(CreateVertexShader())) return false;
 
-    if (FAILED(m_hr = CreatePixelShader())) return FALSE;
+    if (FAILED(CreatePixelShaderCode())) return false;
 
-    if (FAILED(m_hr = CreateInputLayout())) return FALSE;
+    if (FAILED(CreatePixelShader())) return false;
 
-    return TRUE;
+    /// 새로 추가된 단계
+    if (FAILED(CreateTexture())) return false;
+
+    if (FAILED(CreateInputLayout())) return false;
+
+    return true;
 }
 ```
-
-<p>우리는 Init() 함수가 호출되면 차례대로 Create를 붙이고 있는 함수들을 이용해 차례대로 멤버 포인터 변수들에 객체들을 생성해 넘겨줄 것이다.</p>
-
-자 함수들을 차례대로 살펴보자
-
-##### 1) CreateVertexBuffer() : 버퍼 만들기
+<p>사실 어느 단계에 들어가도 상관 없지만, 마지막 단계인 InputLayout을 생성하기 전에 추가해주었다.</p>
 
 ```c++
-BOOL Sample::CreateVertexBuffer()
+HRESULT HBaseObject::CreateTexture()
 {
-    SimpleVertex verticles[] = {    
-		{-0.5f, 0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f},  
-        {+0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f},  
-        {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f},  
-        {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f},
-        {+0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-        {+0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f}
-    };
-
-
-    // 첫 번째 인자 : _In_  const D3D11_BUFFER_DESC* pDesc
-    // 두 번째 인자 : _In_opt_  const D3D11_SUBRESOURCE_DATA* pInitialData
-    // 세 번째 인자 : _COM_Outptr_opt_  ID3D11Buffer** ppBuffer
-
-	// 버퍼 데스크 만들기
-    D3D11_BUFFER_DESC bufDesc;
-	// 메모리 모두 지우기 : 데스크 비우기
-    ZeroMemory(&bufDesc, sizeof(bufDesc));
-
-    // 바이트 용량
-    bufDesc.ByteWidth = sizeof(verticles);
-    // 버퍼의 할당 장소 내지는 버퍼용도 : D3D11_USAGE_DEFAULT는 GPU 메모리에 할당하는 것
-    bufDesc.Usage = D3D11_USAGE_DEFAULT;
-    // 바인드 플래그 : ?
-    bufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    // 나머지 플래그들은 나중에
-    bufDesc.CPUAccessFlags = 0;
-    bufDesc.MiscFlags = 0;
-    bufDesc.StructureByteStride = 0;
-
-	// 버퍼에 담을 자료들을 담는 데스크
-    D3D11_SUBRESOURCE_DATA subResourse;
-	// 메모리 모두 지우기 : 데스크 비우기
-    ZeroMemory(&subResourse, sizeof(subResourse));
-
-    // 담을 자료들
-    subResourse.pSysMem = verticles;
-    // ??
-    subResourse.SysMemPitch;
-    subResourse.SysMemSlicePitch;
-    HRESULT hr = m_pD3dDevice->CreateBuffer(&bufDesc, &subResourse, &m_pVertexBuffer);
-    return hr;
-}
-```
-
-<p> CreateVertexBuffer에서는 m_VertexBuffer에 미리 만들어둔 SimpleVertex를 가지고 버퍼 데스크, 서브 리소스 데스크를 작성해서 직접 Buffer를 만들었다.</p>
-
-##### 2) CreateVertexShaderCode() : 정점 쉐이더 컴파일
-
-```c++
-BOOL Sample::CreateVertexShaderCode()
-{
-    // 정점 쉐이더 컴파일 하기
-
-    // D3DCompileFromFile()
-        // 첫 번째 인자 : _In_ LPCWSTR pFileName   => 컴파일 할 파일명
-        // 두 번째 인자 : _In_reads_opt_ CONST D3D_SHADER_MACRO* pDefines => ???
-        // 세 번째 인자 : _In_opt_ ID3DInclude* pInclude => ???
-        // 네 번째 인자 : _In_ LPCSTR pEntrypoint   => 쉐이더 파일에서 들어갈 부분
-        // 다섯 번째 인자 : _In_ LPCSTR pTarget  => 컴파일 버전
-        // 여섯 번째 인자 : _In_ UINT Flags1  => ???
-        // 일곱 번째 인자 : _In_ UINT Flags2  => ???
-        // 여덟 번째 인자 : _Out_ ID3DBlob** ppCode => OUTPUT : 컴파일된 코드
-        // 아홉 번째 인자 : _Always_(_Outptr_opt_result_maybenull_) ID3DBlob** ppErrorMsg => OUTPUT : 에러 메시지
-
+    // DirectX::CreateWICTextureFromFile() : Texture를 파일에서 불러와 만드는 함수
+        // 첫 번째 인자 : _In_ ID3D11Device* d3dDevice : 디바이스 객체
+        // 두 번째 인자 : _In_z_ const wchar_t* szFileName : 파일의 주소
+        // 세 번째 인자 : _Outptr_opt_ ID3D11Resource** texture,
+        // 네 번째 인자 : _Outptr_opt_ ID3D11ShaderResourceView** textureView,
+        // 다섯 번째 인자 : _In_ size_t maxsize = 0
+        
     HRESULT hr;
-	// 에러가 난다면 에러 메시지를 담을 코드
-    ID3DBlob* pErrorCode;
-	// ***디버깅을 위한 플래그*** : 이 것을 추가하면 그래픽 디버깅이 가능해진다!
-    DWORD dwShaderFlags = D3DCOMPILE_DEBUG;
-
-	// 쉐이더 파일을 가지고 컴파일해 코드 형태로 생성한다.
-    hr = D3DCompileFromFile(L"VertexShader.txt", nullptr, nullptr, "main", "vs_5_0", dwShaderFlags, 0, &m_pVSCODE, &pErrorCode);
-
-    if (FAILED(hr))
-    {
-		// 에러가 생긴다면 에러 메시지를 출력창에 출력한다.
-        if (pErrorCode)
-        {
-            OutputDebugStringA((char*)pErrorCode->GetBufferPointer());
-            pErrorCode->Release();
-        }
-    }
-
-    return hr;
+    if (FAILED(hr = DirectX::CreateWICTextureFromFile(m_pD3dDevice, L"../../data/kgcabk.bmp", &m_pTexture, &m_pShaderRV)))
+        return false;
+    else
+        return true;
 }
 ```
 
-<p> CreateVertexShaderCode()에서는 미리 만들어둔 쉐이더 파일을 컴파일해서 파일 형태로 가지고 반환하는 작업을 거친다. 이 코드들을 가지고 인풋 레이아웃을 생성할 때 사용할 것이다.</p>
+#### ㄹ) CreateInputLayout()의 D3D11_INPUT_ELEMENT_DESC에 TEXTURE 요소 추가하기
+
+<p> 함수는 인자로 다섯 가지를 요구하며, 디바이스 객체와 불러올 리소스의 주소, 그리고 생성된 객체를 받을 두 포인터를 요구한다. 마지막 maxsize는 디폴트가 0으로 설정되어 있어 따로 추가하지 않았다.</p>
+
+```c++
+D3D11_INPUT_ELEMENT_DESC ied[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,0,D3D11_INPUT_PER_VERTEX_DATA, 0},
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,12,D3D11_INPUT_PER_VERTEX_DATA, 0},
+        { "TEXTURE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0}
+    };
+```
+<p>마지막으로 InputLayout 생성 시 필요한 D3D11_INPUT_ELEMENT_DESC에 텍스쳐 요소들을 추가함으로써 생성은 끝이다.</p>
 
 
-<p> 사용한 쉐이더 파일은 다음과 같다.</p>
+### 3. 쉐이더 파일 수정과 랜더링 파이프라인 추가
+
+#### ㄱ) 쉐이더 파일 수정
+
+<p>이제 쉐이더 파일에 Texture가 들어올 수 있는 부분을 만들어주자 </p>
 
 ```HLSL
 struct VS_in
 {
 	float3 p : POSITION;
 	float4 c : COLOR;
+	float2 t : TEXTURE;
 };
 
 struct VS_out
 {
 	float4 p : SV_POSITION;
 	float4 c : COLOR0;	// COLOR1
+	float2 t : TEXCOORD0;
 };
 
 VS_out main(VS_in input)
@@ -266,198 +184,41 @@ VS_out main(VS_in input)
 	// Swizzling
 	output.p = float4(input.p, 1.0f);
 	output.c = input.c;
+	output.t = input.t;
 	return output;
 }
+
+
+Texture2D g_txTexture : register(t0);
+SamplerState g_SampleA : register(s0);
+
+struct PS_in
+{
+	float4 p : SV_POSITION;
+	float4 c : COLOR0;
+	float2 t : TEXCOORD0;
+};
+
+float4 PS(PS_in input) : SV_Target
+{
+	return g_txTexture.Sample(g_SampleA, input.t);
+}
 ```
 
-##### 3) CreateVertexShader() : 정점 쉐이더 생성
+<p> 전 장과 다르게 조금 수정한 버전이다. Texture는 VS_in의 TEXTURE로 들어와 PS에서는 TEXCOORD0 으로 들어와 Texture2D와 SamplerState를 통해 PS에서 값이 빠져나간다. Texture2D와 SamplerState는 다음에 더 자세히 알아보도록 하자</p>
+
+#### ㄴ) 랜더링 파이프라인에서 텍스쳐 추가
 
 ```c++
-BOOL Sample::CreateVertexShader()
-{
-    // CreateVertexShader() 
-        // 첫 번째 인자 : _In_reads_  const void* pShaderBytecode => 쉐이더 코드
-        // 두 번째 인자 : _In_  SIZE_T BytecodeLength => 코드 길이
-        // 세 번째 인자 : _In_opt_  ID3D11ClassLinkage* pClassLinkage => ???
-        // 네 번째 인자 : _COM_Outptr_opt_  ID3D11VertexShader** ppVertexShader  => 버텍스 쉐이더 포인터
+// 4. VSSetShaderResource()
+    // 첫 번째 인자 :  _In_range_(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1)  UINT StartSlot -> 시작 주소
+    // 두 번째 인자 : _In_range_(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot)  UINT NumViews  -> 리소스 갯수
+    // 세 번째 인자 : _In_reads_opt_(NumViews)  ID3D11ShaderResourceView* const* ppShaderResourceViews  
 
-	// 만들어둔 코드와 코드의 버퍼사이즈를 가지고 쉐이더를 만든다. 
-    return m_pD3dDevice->CreateVertexShader(m_pVSCODE->GetBufferPointer(), m_pVSCODE->GetBufferSize(), NULL, &m_pVS);
-}
+    m_pImmediateContext->PSSetShaderResources(0, 1, &m_pShaderRV);
 ```
 
-<p> CreateVertexShader()에서는 미리 컴파일 해둔 코드를 가지고 쉐이더를 생성한다.</p>
-
-
-##### 4) CreatePixelShaderCode() : 픽셀 쉐이더 컴파일
-
-```c++
-BOOL Sample::CreatePixelShaderCode()
-{
-    // 픽셀 쉐이더 컴파일 하기
-
-    // D3DCompileFromFile()
-        // 첫 번째 인자 : _In_ LPCWSTR pFileName => 컴파일 할 파일명
-        // 두 번째 인자 : _In_reads_opt_ CONST D3D_SHADER_MACRO* pDefines => ???
-        // 세 번째 인자 : _In_opt_ ID3DInclude* pInclude => ???
-        // 네 번째 인자 : _In_ LPCSTR pEntrypoint => 쉐이더 파일에 들어갈 때 사용할 엔트리 포인트
-        // 다섯 번째 인자 : _In_ LPCSTR pTarget, => 컴파일 버전
-        // 여섯 번째 인자 : _In_ UINT Flags1 => ???
-        // 일곱 번째 인자 : _In_ UINT Flags2 => ???
-        // 여덟 번째 인자 : _Out_ ID3DBlob** ppCode => OUTPUT : 컴파일된 코드
-        // 아홉 번째 인자 : _Always_(_Outptr_opt_result_maybenull_) ID3DBlob** ppErrorMsgs => OUTPUT : 에러 메시지
-
-    HRESULT hr;
-	// 에러가 난다면 에러 메시지를 담을 코드
-    ID3DBlob* pErrorCode;
-	// ***디버깅을 위한 플래그*** : 이 것을 추가하면 그래픽 디버깅이 가능해진다!
-    DWORD dwShaderFlags = D3DCOMPILE_DEBUG;
-	// 쉐이더 파일을 가지고 컴파일해 코드 형태로 생성한다.
-    hr = D3DCompileFromFile(L"PixelShader.txt", nullptr, nullptr, "PS", "ps_5_0", dwShaderFlags, 0, &m_pPSCODE, &pErrorCode);
-
-    if (FAILED(hr))
-    {
-		// 에러가 생긴다면 에러 메시지를 출력창에 출력한다.
-        if (pErrorCode)
-        {
-            OutputDebugStringA((char*)pErrorCode->GetBufferPointer());
-            pErrorCode->Release();
-        }
-    }
-
-    return hr;
-}
-```
-
-<p> CreateVertexCode()와 형태가 동일하다.</p>
-
-
-<p> 사용한 쉐이더 파일은 간단하다.</p>
-
-```HLSL
-// 해당 픽쉘(SV_Target레지스터에)의 컬러를 반환한다.
-float4 PS(float4 p : SV_POSITION) : SV_Target
-{
-	return float4(1,1,0,1);
-}
-```
-
-##### 5) CreatePixelShader() : 픽셀 쉐이더 생성
-
-```c++
-BOOL Sample::CreatePixelShader()
-{
-    // CreatePixelShader()
-        // 첫 번째 인자 : _In_reads_  const void* pShaderBytecode => 쉐이더 코드
-        // 두 번째 인자 : _In_  SIZE_T BytecodeLength => 코드 길이
-        // 세 번째 인자 : _In_opt_  ID3D11ClassLinkage* pClassLinkage => ???
-        // 네 번째 인자 : _COM_Outptr_opt_  ID3D11PixelShader** ppPixelShader => 픽셀 쉐이더 포인터
-    return m_pD3dDevice->CreatePixelShader(m_pPSCODE->GetBufferPointer(), m_pPSCODE->GetBufferSize(), NULL, &m_pPS);
-}
-```
-
-<p> CreatePixelShader()도 CreateVertexShader()과 동일하다.</p>
-
-##### 6) CreateInputLayout() : 인풋 레이아웃 생성
-
-```c++
-BOOL Sample::CreateInputLayout()
-{
-
-    // CreateInputLayout()
-        // 첫 번째 인자 : _In_reads_(NumElements)  const D3D11_INPUT_ELEMENT_DESC* pInputElementDescs  => 넣는 엘리먼트 데스크
-        // 두 번째 인자 : _In_range_(0, D3D11_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT)  UINT NumElements   => 몇 개의 엘리먼트를 넣는지
-        // 세 번째 인자 : _In_reads_(BytecodeLength)  const void* pShaderBytecodeWithInputSignature => 쉐이더 코드
-        // 네 번째 인자 : _In_  SIZE_T BytecodeLength  => 코드 버퍼 사이즈
-        // 다섯 번째 인자 : _COM_Outptr_opt_  ID3D11InputLayout** ppInputLayout => OUTPUT : 인풋 레이아웃 포인터
-
-    D3D11_INPUT_ELEMENT_DESC ied[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,0,D3D11_INPUT_PER_VERTEX_DATA, 0},
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,12,D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-    UINT NumElements = sizeof(ied) / sizeof(ied[0]);
-    return m_pD3dDevice->CreateInputLayout(ied, NumElements, m_pVSCODE->GetBufferPointer(), m_pVSCODE->GetBufferSize(), &m_pVertexLayout);
-}
-```
-
-<p> 마지막으로 CreateInputLayout()에서는 그동안 작성한 코드들에서 어느 EntryPoint에 들어갈 것인지를 확실하게 정하는 작업을 거친다. 이 레이아웃에 따라 코드에 진입하는 형태인 것 같다. </p>
-
-<hr />
-
-### 2. 랜더링 파이프 라인을 따라 삼각형 랜더링
-
-<p> 이제 랜더링 파이프 라인을 따라 삼각형을 직접 띄워보도록 하자. </p>
-
-```c++
-bool Render()
-{
-	// PreRender
- 	m_pImmediateContext->OMSetRenderTargets(1, &m_pRTV, NULL);
-    float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    m_pImmediateContext->ClearRenderTargetView(m_pRTV, color);
-
-	// Render
-
-	// 1. IASetVertexBuffers() 
-        // 첫 번째 인자 : _In_range_(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - 1)  UINT StartSlot   => 버퍼에서 어디에서 시작할건지???
-        // 두 번째 인자 : _In_range_(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - StartSlot)  UINT NumBuffers => 버퍼 갯수???
-        // 세 번째 인자 : _In_reads_opt_(NumBuffers)  ID3D11Buffer* const* ppVertexBuffers => 버퍼 포인터
-        // 네 번째 인자 : _In_reads_opt_(NumBuffers)  const UINT* pStrides   => 정점 1개의 바이트 용량
-        // 다섯 번째 인자 : _In_reads_opt_(NumBuffers)  const UINT* pOffset  => 정점버퍼에서 출발지점(바이트 단위) 
-        
-    UINT stride = sizeof(SimpleVertex);
-    UINT offset = 0;
-    m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-
-    // 2. IASetInputLayout()
-        // 첫 번째 인자 : _In_opt_  ID3D11InputLayout *pInputLayout => 인풋 레이아웃 포인터 
-    m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
-
-	// 3. IASetPrimitiveTopology() : 보여줄 형식 정하는 함수 ??
-    m_pImmediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // 4. VSSetShader()
-        // 첫 번째 인자 : _In_opt_  ID3D11VertexShader* pVertexShader                                        => 생성한 버텍스 쉐이더
-        // 두 번째 인자 : _In_reads_opt_(NumClassInstances)  ID3D11ClassInstance* const* ppClassInstances    => ???
-        // 세 번째 인자 : UINT NumClassInstances                                                             => ???
-    m_pImmediateContext->VSSetShader(m_pVS, NULL, 0);
-
-    // 5. VSSetShader()
-        // 첫 번째 인자 : _In_opt_  ID3D11PixelShader* pVertexShader                                         => 생성한 픽셀 쉐이더
-        // 두 번째 인자 : _In_reads_opt_(NumClassInstances)  ID3D11ClassInstance* const* ppClassInstances    => ???
-        // 세 번째 인자 : UINT NumClassInstances                                                             => ???
-    m_pImmediateContext->PSSetShader(m_pPS, NULL, 0);
-
-    
-
-    // 6. Draw()
-        // 첫 번째 인자 : _In_  UINT VertexCount             : vertex 갯수
-        // 두 번째 인자 : _In_  UINT StartVertexLocation)    : 시작 vertex 위치
-    m_pImmediateContext->Draw(6, 0);
-
-	// PostRender
-	m_pSwapChain->Present(0, 0);
-}
-```
-
-<p>PreRender 단계에서는 렌더타겟뷰를 설정해주고 배경색을 제외한 모든 것을 치웠다.</p>
-<p>또한 PostRender에서는 스왑체인을 이용해 그려진 백 버퍼를 프론트 버퍼와 바꿔주는 역할을 했다. 이러한 단계는 지난 장에서 이미 작업해둔 내용이다. 그렇다면 이번에 작업한 중간 Render 단계를 살펴보자. </p>
-
-<p>
-<ol>
-<li> IASetVertexBuffers 	: VertexBuffer 세팅</li>
-<li> IASetInputLayout   	: InputLayout 세팅 </li>
-<li> IASetPrimitiveTopology : PrimitiveTopology 세팅</li>
-<li> VSSetShader 			: VertexShader 세팅 </li>
-<li> PSSetShader 			: PixelShader 세팅 </li>
-<li> Draw 					: 백 버퍼에 그리기</li>
-</ol>
-</p>
-
-<p>이 것으로 간단한 삼각형을 띄웠다. 작업 결과는 다음과 같다.</p>
-
-<hr />
+<p>Context를 이용해 PS단계에서 PSSetShaderResources() 함수를 통해 쉐이더에 리소스를 전달하도록 하는 작업이다. 이로써 텍스쳐 작업은 끝난다.</p>
 
 ### 3. 작업 결과 확인하기
 
