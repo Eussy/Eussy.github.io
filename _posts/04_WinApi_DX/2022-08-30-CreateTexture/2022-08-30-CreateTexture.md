@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "WinAPI/DX11 04 : 텍스쳐 적용"
+title:  "WinAPI/DX11 : 04 . 텍스쳐 적용"
 summary: "Resource, 툴킷을 이용해 이미지 적용"
 author: Eussy
 date: '2022-08-30 18:30:00 +0530'

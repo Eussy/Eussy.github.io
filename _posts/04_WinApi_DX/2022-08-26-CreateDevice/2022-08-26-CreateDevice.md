@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "WinAPI/DX11 02 : Device 만들어 랜더링 하기"
+title:  "WinAPI/DX11 : 02 . Device 만들어 랜더링 하기"
 summary: "Device를 만들고 배경색을 랜더링을 통해 바꿔보자"
 author: Eussy
 date: '2022-08-26 18:30:00 +0530'

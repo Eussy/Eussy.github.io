@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "WinAPI/DX11 01 : 윈도우 생성"
+title:  "WinAPI/DX11 : 01 . 윈도우 생성"
 summary: "윈도우 생성"
 author: Eussy
 date: '2022-08-23 18:30:00 +0530'

@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "WinAPI/DX11 03 : VertexBuffer를 가지고 삼각형 만들기"
+title:  "WinAPI/DX11 : 01 . VertexBuffer를 가지고 삼각형 만들기"
 summary: "VertexBuffer를 만들어 삼각형을 띄워보자"
 author: Eussy
 date: '2022-08-29 18:30:00 +0530'
